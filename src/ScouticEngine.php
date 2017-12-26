@@ -24,6 +24,7 @@ class ScouticEngine extends Engine
      * @var object
      */
     protected $elastic;
+
     /**
      * Create a new engine instance.
      *
@@ -35,6 +36,7 @@ class ScouticEngine extends Engine
         $this->elastic = $elastic;
         $this->index = $index;
     }
+
     /**
      * Update the given model in the index.
      *
@@ -44,6 +46,7 @@ class ScouticEngine extends Engine
     public function update($models)
     {
         $params['body'] = [];
+
         $models->each(function($model) use (&$params)
         {
             $params['body'][] = [
@@ -59,8 +62,10 @@ class ScouticEngine extends Engine
                 'doc_as_upsert' => true
             ];
         });
+
         $this->elastic->bulk($params);
     }
+
     /**
      * Remove the given model from the index.
      *
@@ -70,6 +75,7 @@ class ScouticEngine extends Engine
     public function delete($models)
     {
         $params['body'] = [];
+
         $models->each(function($model) use (&$params)
         {
             $params['body'][] = [
@@ -80,8 +86,10 @@ class ScouticEngine extends Engine
                 ]
             ];
         });
+
         $this->elastic->bulk($params);
     }
+
     /**
      * Perform the given search on the engine.
      *
@@ -95,6 +103,7 @@ class ScouticEngine extends Engine
             'size' => $builder->limit,
         ]));
     }
+
     /**
      * Perform the given search on the engine.
      *
@@ -110,9 +119,12 @@ class ScouticEngine extends Engine
             'from' => (($page * $perPage) - $perPage),
             'size' => $perPage,
         ]);
-       $result['nbPages'] = $result['hits']['total']/$perPage;
+
+        $result['nbPages'] = $result['hits']['total']/$perPage;
+
         return $result;
     }
+
     /**
      * Perform the given search on the engine.
      *
@@ -123,8 +135,6 @@ class ScouticEngine extends Engine
     protected function performSearch(Builder $builder, array $options = [])
     {
         $params = [
-            // 'index' => $this->index,
-            // 'type' => $builder->index ?: $builder->model->searchableAs(),
             'index' => $builder->model->searchableAs(),
             'type' => $builder->model->searchableAs(),
             'body' => [
@@ -146,15 +156,17 @@ class ScouticEngine extends Engine
         ];
 
         /**
-         * 这里使用了 highlight 的配置
-          */
+         * This highlight setting.
+         */
         if ($builder->model->searchSettings && isset($builder->model->searchSettings['attributesToHighlight'])) {
             $attributes = $builder->model->searchSettings['attributesToHighlight'];
             $preTags = $builder->model->searchSettings['pre_tags'];
             $postTags = $builder->model->searchSettings['post_tags'];
+
             foreach ($attributes as $attribute) {
                 $params['body']['highlight']['fields'][$attribute] = new \stdClass();
             }
+
             foreach ($preTags as $preTag) {
                 $params['body']['highlight']['pre_tags'] = $preTag;
             }
@@ -167,12 +179,15 @@ class ScouticEngine extends Engine
         if ($sort = $this->sort($builder)) {
             $params['body']['sort'] = $sort;
         }
+
         if (isset($options['from'])) {
             $params['body']['from'] = $options['from'];
         }
+
         if (isset($options['size'])) {
             $params['body']['size'] = $options['size'];
         }
+
         if (isset($options['numericFilters']) && count($options['numericFilters'])) {
             $params['body']['query']['bool']['must'] = array_merge($params['body']['query']['bool']['must'],
                 $options['numericFilters']);
@@ -194,6 +209,7 @@ class ScouticEngine extends Engine
 
         return $this->elastic->search($params);
     }
+
     /**
      * Get the filter array for the query.
      *
@@ -206,9 +222,11 @@ class ScouticEngine extends Engine
             if (is_array($value)) {
                 return ['terms' => [$key => $value]];
             }
+
             return ['match_phrase' => [$key => $value]];
         })->values()->all();
     }
+
     /**
      * Pluck and return the primary keys of the given results.
      *
@@ -219,6 +237,7 @@ class ScouticEngine extends Engine
     {
         return collect($results['hits']['hits'])->pluck('_id')->values();
     }
+
     /**
      * Map the given results to instances of the given model.
      *
@@ -231,8 +250,10 @@ class ScouticEngine extends Engine
         if ($results['hits']['total'] === 0) {
             return Collection::make();
         }
+
         $keys = collect($results['hits']['hits'])
-                        ->pluck('_id')->values()->all();
+            ->pluck('_id')->values()->all();
+
         $models = $model->whereIn(
             $model->getKeyName(), $keys
         )->get()->keyBy($model->getKeyName());
@@ -242,8 +263,9 @@ class ScouticEngine extends Engine
             if (isset($models[$hit['_id']])) {
                 $one = isset($models[$hit['_id']]) ? $models[$hit['_id']] : null;
                 $one->es_score = isset($hit['_score']) ? $hit['_score'] : 0;
+
                 /**
-                 * 这里返回的数据，如果有 highlight，就把对应的  highlight 设置到对象上面
+                 * if highlight with object.
                  */
                 if (isset($hit['highlight'])) {
                     $one->es_highlight = $hit['highlight'];
@@ -254,6 +276,7 @@ class ScouticEngine extends Engine
             // return isset($models[$hit['_id']]) ? $models[$hit['_id']] : null;
         })->filter()->values();
     }
+
     /**
      * Get the total count from a raw result returned by the engine.
      *
@@ -264,6 +287,7 @@ class ScouticEngine extends Engine
     {
         return $results['hits']['total'];
     }
+
     /**
      * Generates the sort if theres any.
      *
@@ -275,6 +299,7 @@ class ScouticEngine extends Engine
         if (count($builder->orders) == 0) {
             return null;
         }
+
         return collect($builder->orders)->map(function($order) {
             return [$order['column'] => $order['direction']];
         })->toArray();

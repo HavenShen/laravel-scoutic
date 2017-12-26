@@ -1,0 +1,2 @@
+# scoutic
+Laravel scout elasticsearch.

@@ -1,0 +1,30 @@
+{
+    "name": "havenshen/laravel-scoutic",
+    "description": "Laravel scout elasticsearch.",
+    "keywords": ["laravel", "scout", "elasticsearch", "laravel-5-packages"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "HavenShen",
+            "email": "havenshen@gmail.com"
+        }
+    ],
+    "require": {
+        "laravel/scout": "^3.0",
+        "elasticsearch/elasticsearch": "^6.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.5",
+        "orchestra/testbench": "~3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "HavenShen\\Laravel\\Scoutic\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    }
+}

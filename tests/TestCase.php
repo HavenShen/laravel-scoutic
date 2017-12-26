@@ -1,7 +1,6 @@
 <?php
 namespace Tests;
 
-use HavenShen\Laravel\Scoutic\ScouticProvider;
 /**
  * TestCase
  *
@@ -24,10 +23,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
         //     $this->config = require __DIR__.'/../config/larsign.php';
         // }
         // $app['config']->set('larsign', $this->config);
-        $app['config']['larsign'] = [
-            'headerName' => 'Larsign',
-            'accessKey' => 'soudryg08yoa4wt',
-            'secretKey' => 'sry5yw4yoij[09',
+        $app['config']['scout']['elasticsearch'] = [
+            'hosts' => 'http://localhost'
         ];
     }
     /**
@@ -38,50 +35,19 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function getPackageProviders($app)
     {
         return [
-            LarsignServiceProvider::class,
+            Laravel\Scout\ScoutServiceProvider::class,
+            HavenShen\Laravel\Scoutic\ScouticProvider::class,
         ];
     }
     protected function getPackageAliases($app)
     {
         return [
-            'Larsign' => LarsignFacade::class,
+            // ...
         ];
     }
     public function getEnvironmentSetUp($app)
     {
-        $this->baseUrl = 'http://larsign.t.dev';
-        $this->webRoute = '/web/test';
-        $this->apiRoute = '/api/test';
-        $router = $app['router'];
-        $this->addWebRoutes($router);
-        $this->addApiRoutes($router);
+        //
     }
-    /**
-     * @param Router $router
-     */
-    protected function addWebRoutes($router)
-    {
-        $router->group(['middleware' => \HavenShen\Larsign\HandleLarsign::class], function () use ($router) {
-            $router->get($this->webRoute, [
-                'as' => 'web.test',
-                'uses' => function () {
-                    return 'test';
-                }
-            ]);
-        });
-    }
-    /**
-     * @param Router $router
-     */
-    protected function addApiRoutes($router)
-    {
-        $router->group(['middleware' => \HavenShen\Larsign\HandleLarsign::class], function () use ($router) {
-            $router->get($this->apiRoute, [
-                'as' => 'api.test',
-                'uses' => function () {
-                    return 'test';
-                }
-            ]);
-        });
-    }
+
 }
